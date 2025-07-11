@@ -324,6 +324,8 @@ void processar_destino_usuario(int origem, int tabuleiro[64], int movimentos[] =
             strip.setPixelColor(verdadeiros_locais[movimentos[i]]*2+1, strip.Color(0,255,255));
         }
         
+        int possiveis_vitimas[numMov];
+        int contador = 0;
         
         for (int i = 0; i < NUM_LINHAS; i++) {
             digitalWrite(pinosLinhas[i], LOW);
@@ -345,7 +347,7 @@ void processar_destino_usuario(int origem, int tabuleiro[64], int movimentos[] =
                     }
 
                     if(peca_origem_levantada) {
-                        if (leitura == LOW && movimentos[k] == posicao) {
+                        if (leitura == LOW && movimentos[k] == posicao && tabuleiro[posicao] == 0) {
                             // Apaga os outros LEDs e deixa apenas a casa escolhida Amarela
                             strip.clear();
                             strip.setPixelColor(verdadeiros_locais[posicao]*2, strip.Color(255,255,0));
@@ -358,6 +360,10 @@ void processar_destino_usuario(int origem, int tabuleiro[64], int movimentos[] =
                             jogadaEnviada = true; 
                             break;
                         }
+                        // Evitar que ele mate a primeira que ele encontra
+                        else if (leitura == LOW && movimentos[k] == posicao && tabuleiro[posicao] == 1) {
+                            possiveis_vitimas[k] = posicao;
+                        }
                         else if (leitura == LOW && movimentos[k] != posicao && tabuleiro[posicao] == 0) {
                             // Posição não está dentro dos movimentos possiveis
                             strip.setPixelColor(verdadeiros_locais[posicao]*2, strip.Color(255,0,0));
@@ -365,8 +371,21 @@ void processar_destino_usuario(int origem, int tabuleiro[64], int movimentos[] =
                             
                             jogadaEnviada = false;
                         }
+
+                        if(leitura == HIGH && posicao == possiveis_vitimas[k]) {
+                            strip.clear();
+                            strip.setPixelColor(verdadeiros_locais[posicao]*2, strip.Color(255,255,0));
+                            strip.setPixelColor(verdadeiros_locais[posicao]*2+1, strip.Color(255,255,0));
+                            enviarJogada(posicao);
+                            // Atualiza o tabuleiro
+                            tabuleiro[posicao] = 1;
+                            delay(100); 
+                            jogadaEnviada = true; 
+                            break;
+                        }
                     }
                 }
+
                 if(jogadaEnviada == true) {
                     break;
                 }
@@ -517,8 +536,21 @@ void verificar_vencedor(const String& vencedor) {
 \******************/ 
 
 void loop() {
-    piscar_led("PURPLE"); // Piscar LED roxo para indicar que o jogo está pronto
+    // piscar_led("PURPLE"); // Piscar LED roxo para indicar que o jogo está pronto
     delay(1000); 
+    strip.clear();
+    for(int i=0; i<64; i++) {
+        strip.setPixelColor(2*i, strip.Color(128, 0, 128));
+        strip.setPixelColor(2*i+1, strip.Color(128, 0, 128));
+        strip.show();
+        delay(350);
+    }
+    piscar_led("PURPLE");
+    delay(500);
+    strip.clear();
+    strip.show();
+    delay(500);
+    piscar_led("PURPLE");
 
     aguardarInicializacao();
 

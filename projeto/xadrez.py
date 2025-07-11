@@ -14,7 +14,7 @@ class XadrezESP32:
         self.ser = None
         self.dificuldade = "Médio"
         self.dificuldade_depth = 6
-        self.STOCKFISH_PATH = "stockfish"
+        self.STOCKFISH_PATH = "/usr/games/stockfish"
         self.board = None
         self.conectar_esp32()
     
@@ -24,47 +24,32 @@ class XadrezESP32:
     
     def encontrar_porta_esp32(self):
         """Encontra automaticamente a porta do ESP32"""
-        ports = serial.tools.list_ports.comports()
-        
-        if not ports:
-            print("Nenhuma porta serial encontrada!")
-            print("Verifique se o ESP32 está conectado via USB")
-            return None
-        
-        print(f"Portas seriais encontradas: {len(ports)}")
-        
-        esp32_ports = []
-        for port in ports:
-            print(f"  {port.device} - {port.description}")
-            if any(keyword in port.description.upper() for keyword in 
-                   ['USB', 'CH340', 'CP210', 'ESP32', 'SILICON LABS', 'USB-SERIAL CH340', 'USB SERIAL']):
-                esp32_ports.append(port)
-                print(f"    Possível ESP32 detectado!")
-        
-        if esp32_ports:
+        while True:
+            ports = serial.tools.list_ports.comports()
+            
+            if not ports:
+                print("Nenhuma porta serial encontrada!")
+                print("Verifique se o ESP32 está conectado via USB")
+                continue
+
+            print(f"Portas seriais encontradas: {len(ports)}")
+            
+            esp32_ports = []
+            for port in ports:
+                print(f"  {port.device} - {port.description}")
+                if any(keyword in port.description.upper() for keyword in 
+                    ['USB', 'CH340', 'CP210', 'ESP32', 'SILICON LABS', 'USB-SERIAL CH340', 'USB SERIAL']):
+                    esp32_ports.append(port)
+                    print(f"    Possível ESP32 detectado!")
+            
+            if not esp32_ports:
+                print("⚠️ Nenhuma porta com padrão de ESP32 detectada.")
+                continue
+            
             porta_escolhida = esp32_ports[0].device
             print(f"Porta ESP32 selecionada: {porta_escolhida} - {esp32_ports[0].description}")
             return porta_escolhida
         
-        print("\nNenhuma porta ESP32 detectada automaticamente")
-        print("Portas disponíveis:")
-        for i, port in enumerate(ports):
-            print(f"  {i+1}. {port.device} - {port.description}")
-        
-        try:
-            escolha = input(f"\nEscolha uma porta (1-{len(ports)}) ou Enter para usar a primeira: ").strip()
-            if escolha == "":
-                return ports[0].device
-            else:
-                idx = int(escolha) - 1
-                if 0 <= idx < len(ports):
-                    return ports[idx].device
-                else:
-                    print("Escolha inválida, usando primeira porta")
-                    return ports[0].device
-        except ValueError:
-            print("Entrada inválida, usando primeira porta")
-            return ports[0].device
     
     def conectar_esp32(self):
         """Conecta à porta do ESP32"""
@@ -414,10 +399,7 @@ class XadrezESP32:
                     while True:
                         try:
                             posicao_origem = self.aguardar_jogada_usuario(1000000)
-                            if not posicao_origem:
-                                print("Timeout ou erro na jogada do usuário")
-                                self.enviar_comando("confirmacao", "nao")
-                                break
+                            
                             
                             origem_chess = self.traduzir_movimento_jogador(posicao_origem)
                             movimentos_possiveis = self.movimentos_possiveis(origem_chess)
@@ -531,49 +513,52 @@ def main():
     xadrez = XadrezESP32()
     
     try:
-        while xadrez.testar_comunicacao_inicial():
-            xadrez.iniciar_partida()
-            
-            # print("\nMenu principal")
-            # print("1. Definir Dificuldade")
-            # print("2. Jogar Partida de Xadrez")
-            # print("3. Teste de Comunicação")
-            # print("0. Sair")
-            
-            # opcao = input("\nEscolha uma opção: ").strip()
-            
-            # if opcao == "1":
-            #     xadrez.definir_dificuldade()
-            # elif opcao == "2":
-            #     xadrez.iniciar_partida()
-            # elif opcao == "3":
-            #     print("Testando comunicação...")
-            #     sucesso = False
-            #     for tentativa in range(1, 4):
-            #         print(f"Tentativa {tentativa}/3...")
-            #         if xadrez.enviar_comando("teste", "ping"):
-            #             resposta = xadrez.aguardar_resposta(timeout=10)
-            #             if resposta:
-            #                 print("Comunicação OK")
-            #                 sucesso = True
-            #                 break
-            #             else:
-            #                 print(f"Tentativa {tentativa} falhou - sem resposta")
-            #         else:
-            #             print(f"Tentativa {tentativa} falhou - erro no envio")
-                    
-            #         if tentativa < 3:
-            #             time.sleep(2)
+        while True:
+            if xadrez.testar_comunicacao_inicial():
+                xadrez.iniciar_partida()
+            else:
+                print("Falha na comunicação inicial.")
                 
-            #     if not sucesso:
-            #         print("Falha na comunicação após 3 tentativas")
+                # print("\nMenu principal")
+                # print("1. Definir Dificuldade")
+                # print("2. Jogar Partida de Xadrez")
+                # print("3. Teste de Comunicação")
+                # print("0. Sair")
+                
+                # opcao = input("\nEscolha uma opção: ").strip()
+                
+                # if opcao == "1":
+                #     xadrez.definir_dificuldade()
+                # elif opcao == "2":
+                #     xadrez.iniciar_partida()
+                # elif opcao == "3":
+                #     print("Testando comunicação...")
+                #     sucesso = False
+                #     for tentativa in range(1, 4):
+                #         print(f"Tentativa {tentativa}/3...")
+                #         if xadrez.enviar_comando("teste", "ping"):
+                #             resposta = xadrez.aguardar_resposta(timeout=10)
+                #             if resposta:
+                #                 print("Comunicação OK")
+                #                 sucesso = True
+                #                 break
+                #             else:
+                #                 print(f"Tentativa {tentativa} falhou - sem resposta")
+                #         else:
+                #             print(f"Tentativa {tentativa} falhou - erro no envio")
+                        
+                #         if tentativa < 3:
+                #             time.sleep(2)
                     
-            # elif opcao == "0":
-            #     print("Encerrando programa...")
-            #     break
-            # else:
-            #     print("Opção inválida!")
-    
+                #     if not sucesso:
+                #         print("Falha na comunicação após 3 tentativas")
+                        
+                # elif opcao == "0":
+                #     print("Encerrando programa...")
+                #     break
+                # else:
+                #     print("Opção inválida!")
+        
     except KeyboardInterrupt:
         print("\nPrograma interrompido pelo usuário (Ctrl+C)")
     except Exception as e:
