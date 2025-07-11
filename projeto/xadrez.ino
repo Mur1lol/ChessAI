@@ -107,11 +107,8 @@ void enviarJogada(const int posicao) {
 |* AGUARDAR INICIALIZAÇÃO *|
 \*************************/ 
 
-void aguardarInicializacao() {
-    // Serial.println("Aguardando comando de inicialização...");
-    bool inicializado = false;
-    
-    while (!inicializado) {
+bool aguardarInicializacao() {
+    while (true) {
         if (Serial.available()) {
             String msg = Serial.readStringUntil('\n');
             StaticJsonDocument<100> resposta; 
@@ -125,7 +122,8 @@ void aguardarInicializacao() {
                     serializeJson(confirmacao, Serial);
                     Serial.print('\n');
                     
-                    inicializado = true;
+                    novoJogo = true;
+                    return true;
                 } 
                 else if(comando == "teste") {
                     // Enviar confirmação OK
@@ -137,9 +135,9 @@ void aguardarInicializacao() {
                 }
             }
         } 
-        delay(1000);
+        else
+            delay(1000);
     }
-    novoJogo = true;
 }
 
 //----------------------------------------------
@@ -231,7 +229,13 @@ bool verificar_tabuleiro(int tabuleiro[64]) {
 \*******************************/ 
 
 int processar_origem_usuario(int tabuleiro[64]) {
-    Serial.println("Jogador");
+    // Serial.println("Jogador");
+    strip.clear();
+    for (int i = 0; i < NUM_TOTAL_LEDS; i++) {
+        strip.setPixelColor(i, strip.Color(255, 255, 255));
+    }
+    strip.setBrightness(10);
+    strip.show(); 
     while(true) {
         for (int i = 0; i < NUM_LINHAS; i++) {
             digitalWrite(pinosLinhas[i], LOW);
@@ -266,10 +270,11 @@ bool aguarda_resposta(int origem, int tabuleiro[64]) {
                         tabuleiro[origem] = 0; // Marca a casa de origem como vazia
                         return true;
                     }
-                    else {
-                        strip.setPixelColor(verdadeiros_locais[origem]*2, strip.Color(255,0,0)); // Primeiro movimento em verde
-                        strip.setPixelColor(verdadeiros_locais[origem]*2+1, strip.Color(255,0,0)); // Primeiro movimento em verde
+                    else if (resp=="nao") {
+                        strip.setPixelColor(verdadeiros_locais[origem]*2, strip.Color(255,0,0)); 
+                        strip.setPixelColor(verdadeiros_locais[origem]*2+1, strip.Color(255,0,0)); 
                         strip.show();
+                        while (digitalRead(pinosColunas[origem]) == HIGH) { delay(100); }
                         return false;
                     }
                 } 
@@ -307,6 +312,7 @@ int receberMelhoresMovimentos(int best_moves[]) {
 void processar_destino_usuario(int origem, int tabuleiro[64], int movimentos[] = NULL, int numMov = 0) {
     jogadaEnviada = false;
     bool peca_origem_levantada = false;
+    // Serial.println("Aguardando confirmar jogada");
     while(jogadaEnviada == false) {
         strip.clear();
 
@@ -361,8 +367,18 @@ void processar_destino_usuario(int origem, int tabuleiro[64], int movimentos[] =
                             break;
                         }
                         // Evitar que ele mate a primeira que ele encontra
-                        else if (leitura == LOW && movimentos[k] == posicao && tabuleiro[posicao] == 1) {
-                            possiveis_vitimas[k] = posicao;
+                        else if (leitura == HIGH && movimentos[k] == posicao && tabuleiro[posicao] == 1) {
+                            // Apaga os outros LEDs e deixa apenas a casa escolhida Amarela
+                            strip.clear();
+                            strip.setPixelColor(verdadeiros_locais[posicao]*2, strip.Color(255,255,0));
+                            strip.setPixelColor(verdadeiros_locais[posicao]*2+1, strip.Color(255,255,0));
+                            enviarJogada(posicao);
+                            
+                            // Atualiza o tabuleiro
+                            tabuleiro[posicao] = 1;
+                            delay(100); 
+                            jogadaEnviada = true; 
+                            break;
                         }
                         else if (leitura == LOW && movimentos[k] != posicao && tabuleiro[posicao] == 0) {
                             // Posição não está dentro dos movimentos possiveis
@@ -370,18 +386,6 @@ void processar_destino_usuario(int origem, int tabuleiro[64], int movimentos[] =
                             strip.setPixelColor(verdadeiros_locais[posicao]*2+1, strip.Color(255,0,0));
                             
                             jogadaEnviada = false;
-                        }
-
-                        if(leitura == HIGH && posicao == possiveis_vitimas[k]) {
-                            strip.clear();
-                            strip.setPixelColor(verdadeiros_locais[posicao]*2, strip.Color(255,255,0));
-                            strip.setPixelColor(verdadeiros_locais[posicao]*2+1, strip.Color(255,255,0));
-                            enviarJogada(posicao);
-                            // Atualiza o tabuleiro
-                            tabuleiro[posicao] = 1;
-                            delay(100); 
-                            jogadaEnviada = true; 
-                            break;
                         }
                     }
                 }
@@ -539,18 +543,22 @@ void loop() {
     // piscar_led("PURPLE"); // Piscar LED roxo para indicar que o jogo está pronto
     delay(1000); 
     strip.clear();
-    for(int i=0; i<64; i++) {
+    int i=0;
+    for(i=0; i<64; i++) {
         strip.setPixelColor(2*i, strip.Color(128, 0, 128));
         strip.setPixelColor(2*i+1, strip.Color(128, 0, 128));
         strip.show();
         delay(350);
     }
-    piscar_led("PURPLE");
-    delay(500);
-    strip.clear();
-    strip.show();
-    delay(500);
-    piscar_led("PURPLE");
+
+    for(i=0; i<4; i++) {
+        delay(500);
+        strip.setBrightness(10);
+        strip.show();
+        delay(500);
+        strip.setBrightness(50);
+        piscar_led("PURPLE");
+    }
 
     aguardarInicializacao();
 
@@ -568,8 +576,6 @@ void loop() {
         }
 
         delay(2000);
-        strip.clear();
-        strip.show();
         
 
         /*************\ 
@@ -581,6 +587,7 @@ void loop() {
         while(aguarda_resposta(origem, tabuleiro) == false) {
             origem = processar_origem_usuario(tabuleiro);
         }
+        strip.setBrightness(50);
         int numMov = receberMelhoresMovimentos(best_moves);
 
         processar_destino_usuario(origem, tabuleiro, best_moves, numMov);
