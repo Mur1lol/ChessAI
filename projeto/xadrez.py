@@ -447,12 +447,16 @@ class XadrezESP32:
                     
                     try:
                         movimento = chess.Move.from_uci(jogada_uci)
-                        if movimento in self.board.legal_moves:
-                            self.board.push(movimento)
-                            print(f"Jogada {jogada_uci} executada com sucesso!")
-                        else:
-                            print(f"Jogada {jogada_uci} é inválida!")
-                            continue
+                        if movimento not in self.board.legal_moves:
+                            # Tentativa de promoção automática para dama
+                            movimento_promocao = chess.Move.from_uci(jogada_uci + 'q')
+                            if movimento_promocao in self.board.legal_moves:
+                                movimento = movimento_promocao
+                            else:
+                                print(f"Jogada {jogada_uci} é inválida!")
+                                continue
+                        self.board.push(movimento)
+                        print(f"Jogada {movimento.uci()} executada com sucesso!")
                     except Exception as e:
                         print(f"Erro ao processar jogada {jogada_uci}: {e}")
                         continue
@@ -478,6 +482,17 @@ class XadrezESP32:
                     if confirmacao is None:
                         print("Timeout aguardando confirmação da jogada do computador")
                         break
+
+                    # Força promoção para dama, se for uma promoção
+                    if movimento_computador.promotion and movimento_computador.promotion != chess.QUEEN:
+                        movimento_forcado = chess.Move(
+                            movimento_computador.from_square,
+                            movimento_computador.to_square,
+                            promotion=chess.QUEEN
+                        )
+                        if movimento_forcado in self.board.legal_moves:
+                            print(f"Substituindo promoção sugerida por: {movimento_forcado.uci()} (promoção para dama)")
+                            movimento_computador = movimento_forcado
                     
                     self.board.push(movimento_computador)
                     print(f"Jogada do computador {movimento_computador.uci()} executada!")

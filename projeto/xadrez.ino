@@ -238,12 +238,7 @@ bool verificar_tabuleiro(int tabuleiro[64]) {
 
 int processar_origem_usuario(int tabuleiro[64]) {
     // Serial.println("Jogador");
-    strip.clear();
-    for (int i = 0; i < NUM_TOTAL_LEDS; i++) {
-        strip.setPixelColor(i, strip.Color(255, 255, 255));
-    }
-    strip.setBrightness(15);
-    strip.show(); 
+    
     while(true) {
         for (int i = 0; i < NUM_LINHAS; i++) {
             digitalWrite(pinosLinhas[i], LOW);
@@ -262,6 +257,12 @@ int processar_origem_usuario(int tabuleiro[64]) {
             digitalWrite(pinosLinhas[i], HIGH);
         }
     }
+    strip.clear();
+    for (int i = 0; i < NUM_TOTAL_LEDS; i++) {
+        strip.setPixelColor(i, strip.Color(255, 255, 255));
+    }
+    strip.setBrightness(15);
+    strip.show(); 
 }
 
 bool aguarda_resposta(int origem, int tabuleiro[64]) {
@@ -282,7 +283,7 @@ bool aguarda_resposta(int origem, int tabuleiro[64]) {
                         strip.setPixelColor(verdadeiros_locais[origem]*2, strip.Color(255,0,0)); 
                         strip.setPixelColor(verdadeiros_locais[origem]*2+1, strip.Color(255,0,0)); 
                         strip.show();
-                        while (digitalRead(pinosColunas[origem]) == HIGH) { delay(100); }
+                        // while (digitalRead(pinosColunas[origem]) == HIGH) { delay(100); }
                         return false;
                     }
                 } 
