@@ -52,9 +52,17 @@ void setup() {
 
     // Inicializa a fita NeoPixel
     strip.begin();
-    strip.setBrightness(BRIGHTNESS);
-    strip.clear(); 
-    strip.show(); 
+    strip.setBrightness(BRIGHTNESS); 
+
+    delay(1000); 
+    strip.clear();
+    int i=0;
+    for(i=0; i<64; i++) {
+        strip.setPixelColor(2*i, strip.Color(128, 0, 128));
+        strip.setPixelColor(2*i+1, strip.Color(128, 0, 128));
+        strip.show();
+        delay(350);
+    }
 }
 
 //----------------------------------------------
@@ -234,7 +242,7 @@ int processar_origem_usuario(int tabuleiro[64]) {
     for (int i = 0; i < NUM_TOTAL_LEDS; i++) {
         strip.setPixelColor(i, strip.Color(255, 255, 255));
     }
-    strip.setBrightness(10);
+    strip.setBrightness(15);
     strip.show(); 
     while(true) {
         for (int i = 0; i < NUM_LINHAS; i++) {
@@ -540,20 +548,11 @@ void verificar_vencedor(const String& vencedor) {
 \******************/ 
 
 void loop() {
-    // piscar_led("PURPLE"); // Piscar LED roxo para indicar que o jogo está pronto
-    delay(1000); 
-    strip.clear();
-    int i=0;
-    for(i=0; i<64; i++) {
-        strip.setPixelColor(2*i, strip.Color(128, 0, 128));
-        strip.setPixelColor(2*i+1, strip.Color(128, 0, 128));
-        strip.show();
-        delay(350);
-    }
+    piscar_led("PURPLE");
 
-    for(i=0; i<4; i++) {
+    for(i=0; i<3; i++) {
         delay(500);
-        strip.setBrightness(10);
+        strip.setBrightness(15);
         strip.show();
         delay(500);
         strip.setBrightness(50);
