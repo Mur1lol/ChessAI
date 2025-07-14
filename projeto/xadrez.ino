@@ -63,6 +63,15 @@ void setup() {
         strip.show();
         delay(350);
     }
+
+    for (int i = 0; i < 3; i++) {
+        delay(200);
+        strip.setBrightness(20);
+        strip.show();
+        delay(200);
+        strip.setBrightness(50);
+        strip.show();
+    }
 }
 
 //----------------------------------------------
@@ -569,9 +578,6 @@ void verificar_vencedor(const String& vencedor) {
 \******************/ 
 
 void loop() {
-    acender_led("PURPLE");
-    piscar_led(3, 500);
-
     int dificuldade = aguardarInicializacao();
 
     if (dificuldade == 3) { //Facil
@@ -586,8 +592,8 @@ void loop() {
     else if (dificuldade == 12) { //Impossível
         acender_led("RED");
     }
-    delay(500);
-    piscar_led(3, 200);
+    delay(200);
+    piscar_led(3, 250);
 
 
     while(novoJogo) {
