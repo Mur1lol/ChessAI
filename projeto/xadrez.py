@@ -433,10 +433,10 @@ class XadrezESP32:
                     
                     print("\nAguardando usuário escolher destino...")
                     posicao_destino = self.aguardar_jogada_usuario()
-                    if not posicao_destino:
+                    if posicao_destino < 0 or posicao_destino > 63:
                         print("Timeout ou erro na escolha do destino")
-                        break
-                    
+                        continue
+
                     destino_chess = self.traduzir_movimento_jogador(posicao_destino)
                     jogada_uci = origem_chess + destino_chess
                     print(f"Jogada do usuário: {jogada_uci}")
