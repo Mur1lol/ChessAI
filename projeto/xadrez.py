@@ -12,8 +12,8 @@ TIMEOUT = 10
 class XadrezESP32:
     def __init__(self):
         self.ser = None
-        self.dificuldade = "Médio"
-        self.dificuldade_depth = 6
+        self.dificuldade = "Facil"
+        self.dificuldade_depth = 3
         self.STOCKFISH_PATH = "/usr/games/stockfish"
         self.board = None
         self.conectar_esp32()
@@ -102,9 +102,7 @@ class XadrezESP32:
         """Testa a comunicação inicial com o ESP32"""
         print("Testando comunicação inicial...")
         
-        for tentativa in range(1, 4):
-            print(f"Tentativa {tentativa}/3 de comunicação...")
-            
+        while True:
             try:
                 self.ser.reset_input_buffer()
                 self.ser.reset_output_buffer()
@@ -117,16 +115,14 @@ class XadrezESP32:
                         print("Comunicação inicial estabelecida com sucesso!")
                         return True
                     else:
-                        print(f"Tentativa {tentativa} falhou - sem resposta JSON válida")
+                        print(f"Tentativa falhou - sem resposta JSON válida")
                 else:
-                    print(f"Tentativa {tentativa} falhou - erro no envio")
+                    print(f"Tentativa falhou - erro no envio")
                     
             except Exception as e:
-                print(f"Erro na tentativa {tentativa}: {e}")
+                print(f"Erro: {e}")
             
-            if tentativa < 3:
-                print("Aguardando antes da próxima tentativa...")
-                time.sleep(2)
+            time.sleep(2)
         
         return False
     
@@ -195,7 +191,7 @@ class XadrezESP32:
     def enviar_comando(self, comando, resposta):
         """Envia um comando JSON para o ESP32"""
         try:
-            comando_json = json.dumps({"comando": comando, "resposta": resposta, "qtde": len(resposta)}) + '\n'
+            comando_json = json.dumps({"comando": comando, "resposta": resposta, "qtde": len(resposta), "dificuldade": self.dificuldade_depth}) + '\n'
             
             self.ser.reset_output_buffer()
             bytes_enviados = self.ser.write(comando_json.encode('utf-8'))
@@ -507,6 +503,7 @@ class XadrezESP32:
                 if resultado == "1-0":
                     print("Vitória das BRANCAS!")
                     resultado_msg = "1-0"
+                    self.dificuldade_depth = self.dificuldade_depth % 12 + 3
                 elif resultado == "0-1":
                     print("Vitória das PRETAS!")
                     resultado_msg = "0-1"
@@ -529,50 +526,47 @@ def main():
     
     try:
         while True:
-            if xadrez.testar_comunicacao_inicial():
-                xadrez.iniciar_partida()
-            else:
-                print("Falha na comunicação inicial.")
+            xadrez.iniciar_partida()
                 
-                # print("\nMenu principal")
-                # print("1. Definir Dificuldade")
-                # print("2. Jogar Partida de Xadrez")
-                # print("3. Teste de Comunicação")
-                # print("0. Sair")
-                
-                # opcao = input("\nEscolha uma opção: ").strip()
-                
-                # if opcao == "1":
-                #     xadrez.definir_dificuldade()
-                # elif opcao == "2":
-                #     xadrez.iniciar_partida()
-                # elif opcao == "3":
-                #     print("Testando comunicação...")
-                #     sucesso = False
-                #     for tentativa in range(1, 4):
-                #         print(f"Tentativa {tentativa}/3...")
-                #         if xadrez.enviar_comando("teste", "ping"):
-                #             resposta = xadrez.aguardar_resposta(timeout=10)
-                #             if resposta:
-                #                 print("Comunicação OK")
-                #                 sucesso = True
-                #                 break
-                #             else:
-                #                 print(f"Tentativa {tentativa} falhou - sem resposta")
-                #         else:
-                #             print(f"Tentativa {tentativa} falhou - erro no envio")
-                        
-                #         if tentativa < 3:
-                #             time.sleep(2)
+            # print("\nMenu principal")
+            # print("1. Definir Dificuldade")
+            # print("2. Jogar Partida de Xadrez")
+            # print("3. Teste de Comunicação")
+            # print("0. Sair")
+            
+            # opcao = input("\nEscolha uma opção: ").strip()
+            
+            # if opcao == "1":
+            #     xadrez.definir_dificuldade()
+            # elif opcao == "2":
+            #     xadrez.iniciar_partida()
+            # elif opcao == "3":
+            #     print("Testando comunicação...")
+            #     sucesso = False
+            #     for tentativa in range(1, 4):
+            #         print(f"Tentativa {tentativa}/3...")
+            #         if xadrez.enviar_comando("teste", "ping"):
+            #             resposta = xadrez.aguardar_resposta(timeout=10)
+            #             if resposta:
+            #                 print("Comunicação OK")
+            #                 sucesso = True
+            #                 break
+            #             else:
+            #                 print(f"Tentativa {tentativa} falhou - sem resposta")
+            #         else:
+            #             print(f"Tentativa {tentativa} falhou - erro no envio")
                     
-                #     if not sucesso:
-                #         print("Falha na comunicação após 3 tentativas")
-                        
-                # elif opcao == "0":
-                #     print("Encerrando programa...")
-                #     break
-                # else:
-                #     print("Opção inválida!")
+            #         if tentativa < 3:
+            #             time.sleep(2)
+                
+            #     if not sucesso:
+            #         print("Falha na comunicação após 3 tentativas")
+                    
+            # elif opcao == "0":
+            #     print("Encerrando programa...")
+            #     break
+            # else:
+            #     print("Opção inválida!")
         
     except KeyboardInterrupt:
         print("\nPrograma interrompido pelo usuário (Ctrl+C)")

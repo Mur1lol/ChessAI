@@ -71,7 +71,7 @@ void setup() {
 |* PISCA LED *|
 \*************/ 
 
-void piscar_led(const String& cor, int movimentos[] = NULL, int numMov = 0) {
+void acender_led(const String& cor) {
     // Cores disponíveis
     uint32_t corRGB;
     if (cor == "RED") {
@@ -97,6 +97,17 @@ void piscar_led(const String& cor, int movimentos[] = NULL, int numMov = 0) {
     delay(1000); 
 }
 
+void piscar_led(int qtde, int delayTime = 500) {
+    for (int i = 0; i < qtde; i++) {
+        delay(delayTime);
+        strip.setBrightness(20);
+        strip.show();
+        delay(delayTime);
+        strip.setBrightness(50);
+        strip.show();
+    }
+}
+
 //----------------------------------------------
 
 /*****************\
@@ -115,7 +126,7 @@ void enviarJogada(const int posicao) {
 |* AGUARDAR INICIALIZAÇÃO *|
 \*************************/ 
 
-bool aguardarInicializacao() {
+int aguardarInicializacao() {
     while (true) {
         if (Serial.available()) {
             String msg = Serial.readStringUntil('\n');
@@ -131,7 +142,7 @@ bool aguardarInicializacao() {
                     Serial.print('\n');
                     
                     novoJogo = true;
-                    return true;
+                    return confirmacao["dificuldade"].as<int>();
                 } 
                 else if(comando == "teste") {
                     // Enviar confirmação OK
@@ -516,7 +527,7 @@ void processar_destino_computador(int origem, int tabuleiro[64], int movimentos[
 void verificar_vencedor(const String& vencedor) {
     if (vencedor == "1-0") {
         for (int i=0; i<5; i++) {
-            piscar_led("GREEN");
+            acender_led("GREEN");
             strip.clear();
             strip.show();
             delay(500); 
@@ -524,7 +535,7 @@ void verificar_vencedor(const String& vencedor) {
     }
     else if (vencedor == "0-1") {
         for (int i=0; i<5; i++) {
-            piscar_led("RED");
+            acender_led("RED");
             strip.clear();
             strip.show();
             delay(500); 
@@ -532,7 +543,7 @@ void verificar_vencedor(const String& vencedor) {
     }
     else {
         for (int i=0; i<5; i++) {
-            piscar_led("YELLOW");
+            acender_led("YELLOW");
             strip.clear();
             strip.show();
             delay(500); 
@@ -549,23 +560,30 @@ void verificar_vencedor(const String& vencedor) {
 \******************/ 
 
 void loop() {
-    piscar_led("PURPLE");
+    acender_led("PURPLE");
+    piscar_led(3, 500);
 
-    for(i=0; i<3; i++) {
-        delay(500);
-        strip.setBrightness(15);
-        strip.show();
-        delay(500);
-        strip.setBrightness(50);
-        piscar_led("PURPLE");
+    int dificuldade = aguardarInicializacao();
+
+    if (dificuldade == 3) { //Facil
+        acender_led("WHITE");
     }
+    else if (dificuldade == 6) { //Médio
+        acender_led("YELLOW");
+    }
+    else if (dificuldade == 9) { //Difícil
+        acender_led("BLUE");
+    }
+    else if (dificuldade == 12) { //Impossível
+        acender_led("RED");
+    }
+    piscar_led(3, 200);
 
-    aguardarInicializacao();
 
     while(novoJogo) {
         strip.clear(); 
         receberTabuleiro(tabuleiro);
-        delay(1000);
+        delay(500);
 
         if (!novoJogo) {
             break;
