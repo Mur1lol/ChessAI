@@ -275,13 +275,14 @@ int processar_origem_usuario(int tabuleiro[64]) {
             }
             digitalWrite(pinosLinhas[i], HIGH);
         }
+        strip.clear();
+        for (int i = 0; i < NUM_TOTAL_LEDS; i++) {
+            strip.setPixelColor(i, strip.Color(255, 255, 255));
+        }
+        strip.setBrightness(15);
+        strip.show(); 
     }
-    strip.clear();
-    for (int i = 0; i < NUM_TOTAL_LEDS; i++) {
-        strip.setPixelColor(i, strip.Color(255, 255, 255));
-    }
-    strip.setBrightness(15);
-    strip.show(); 
+    
 }
 
 bool aguarda_resposta(int origem, int tabuleiro[64]) {
@@ -604,7 +605,7 @@ void loop() {
 
         delay(2000);
         strip.clear();
-        
+        strip.show();
 
         /*************\ 
         |*  JOGADOR  *|
