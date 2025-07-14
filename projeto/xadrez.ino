@@ -150,7 +150,7 @@ int aguardarInicializacao() {
                     Serial.print('\n');
                     
                     novoJogo = true;
-                    return confirmacao["dificuldade"].as<int>();
+                    return resposta["dificuldade"].as<int>();
                 } 
                 else if(comando == "teste") {
                     // Enviar confirmação OK
@@ -575,13 +575,13 @@ void loop() {
     int dificuldade = aguardarInicializacao();
 
     if (dificuldade == 3) { //Facil
-        acender_led("ORANGE");
+        acender_led("BLUE");
     }
     else if (dificuldade == 6) { //Médio
         acender_led("YELLOW");
     }
     else if (dificuldade == 9) { //Difícil
-        acender_led("BLUE");
+        acender_led("ORANGE");
     }
     else if (dificuldade == 12) { //Impossível
         acender_led("RED");
