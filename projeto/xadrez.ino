@@ -84,6 +84,14 @@ void acender_led(const String& cor) {
         corRGB = strip.Color(0, 0, 255);
     } else if (cor == "PURPLE") {
         corRGB = strip.Color(128, 0, 128);
+    } else if (cor == "ORANGE") {
+        corRGB = strip.Color(255, 165, 0);
+    } else if (cor == "CYAN") {
+        corRGB = strip.Color(0, 255, 255);
+    } else if (cor == "WHITE") {
+        corRGB = strip.Color(255, 255, 255);
+    } else if (cor == "PINK") {
+        corRGB = strip.Color(255, 192, 203);
     } else {
         corRGB = strip.Color(255, 255, 255); 
     }
@@ -566,7 +574,7 @@ void loop() {
     int dificuldade = aguardarInicializacao();
 
     if (dificuldade == 3) { //Facil
-        acender_led("WHITE");
+        acender_led("ORANGE");
     }
     else if (dificuldade == 6) { //Médio
         acender_led("YELLOW");
@@ -577,6 +585,7 @@ void loop() {
     else if (dificuldade == 12) { //Impossível
         acender_led("RED");
     }
+    delay(500);
     piscar_led(3, 200);
 
 
@@ -594,6 +603,7 @@ void loop() {
         }
 
         delay(2000);
+        strip.clear();
         
 
         /*************\ 

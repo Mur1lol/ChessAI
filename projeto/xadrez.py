@@ -106,10 +106,10 @@ class XadrezESP32:
             try:
                 self.ser.reset_input_buffer()
                 self.ser.reset_output_buffer()
-                time.sleep(1)
+                time.sleep(2)
                 
                 if self.enviar_comando("teste", "ping"):
-                    resposta = self.aguardar_resposta(timeout=10)
+                    resposta = self.aguardar_resposta(timeout=20)
                     
                     if resposta:
                         print("Comunicação inicial estabelecida com sucesso!")
@@ -123,8 +123,6 @@ class XadrezESP32:
                 print(f"Erro: {e}")
             
             time.sleep(2)
-        
-        return False
     
     def aguardar_resposta(self, timeout=120):
         """Aguarda uma resposta do ESP32"""
@@ -395,7 +393,9 @@ class XadrezESP32:
                     while True:
                         try:
                             posicao_origem = self.aguardar_jogada_usuario(1000000)
-                            
+                            if posicao_origem < 0 or posicao_origem > 63:
+                                print("Timeout ou erro na escolha da origem")
+                                continue
                             
                             origem_chess = self.traduzir_movimento_jogador(posicao_origem)
                             movimentos_possiveis = self.movimentos_possiveis(origem_chess)
@@ -524,6 +524,7 @@ class XadrezESP32:
 def main():    
     xadrez = XadrezESP32()
     
+    print("\nBem-vindo ao jogo de Xadrez com ESP32!")
     try:
         while True:
             xadrez.iniciar_partida()
